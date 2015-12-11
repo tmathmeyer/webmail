@@ -6,7 +6,8 @@
   "dependencies": {
     "isotemplate": "^1.0.8",
     "isotope": "^0.6.1",
-    "nodemailer": "^1.10.0"
+    "nodemailer": "^1.10.0",
+    "read": "^1.0.7"
   },
   "devDependencies": {},
   "scripts": {
