@@ -1,0 +1,25 @@
+{
+  "name": "webmail",
+  "version": "1.0.0",
+  "description": "A webmail client with PGP support",
+  "main": "server.js",
+  "dependencies": {
+    "isotemplate": "^1.0.8",
+    "isotope": "^0.6.1",
+    "nodemailer": "^1.10.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "mocha",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "github.com/tmathmeyer/webmail"
+  },
+  "keywords": [
+    "webmail"
+  ],
+  "author": "Ted Meyer",
+  "license": "GPL-2.0"
+}

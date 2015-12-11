@@ -1,0 +1,97 @@
+<!--
+Copyright (C) 2015 Ted Meyer
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License version 2 as
+    published by the Free Software Foundation.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License along
+    with this program; if not, write to the Free Software Foundation, Inc.,
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+-->
+<html>
+<head>
+  <title> PGP webmail client </title>
+  <script src='/static/js/openpgp.min.js'></script>
+  <script src='/static/js/ui.js'></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <link rel='stylesheet' href='/static/css/main.css'>
+  <link rel="stylesheet" href="/static/css/font-awesome.min.css">
+</head>
+<body>
+  <div id='side_control'>
+    <div id='compose' class='button white'>
+      Compose
+    </div>
+    <ul id='tagfilters'>
+      {{mailtags}}
+      <li class='mailtag'>{{tagname}}</li>
+      {{/mailtags}}
+    </ul>
+    <div id='pgpcontrol' class='button white'>
+      PGP Settings
+    </div>
+  </div>
+  <div id='mainPanel'>
+    <div id='compositionform' class='fullheight'>
+      <div class='fullwidth inputformheader'>
+        <input type='text' id='to' class='fullwidth fullinput halfheight textleft' placeholder='recipients'/>
+        <input type='text' id='subject' class='fullwidth fullinput halfheight textleft' placeholder='subject'/>
+      </div>
+      <div class='fullwidth fullheight relative'>
+        <textarea type='textarea' id='writeEmail' class='fullwidth fullheight padded'>{{if writeDefaultContents}}</textarea>
+        <div id='emailcontrols' class='right upper absolute'>
+          <div class='redbutton fright' id='trash'>
+            <i class="fa fa-trash-o"> Delete</i>
+          </div>
+          <div class='bluebutton fright' id='encrypt'>
+            <i class="fa fa-key"> Encrypt</i>
+          </div>
+          <div class='bluebutton fright' id='sign'>
+            <i class="fa fa-pencil-square-o"> Sign</i>
+          </div>
+          <div class='bluebutton fright' id='send'>
+            <i class="fa fa-paper-plane-o"> Send</i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id='maillisting' style="display: none;">
+      {{mails}}
+    </div>
+    <div id='PGPControlPanel' class='fullheight fullwidth' style="display: none;">
+      <div id='keyselector' class='quarterwidth fullheight'>
+        <div class='fullwidth fullheight'>
+          <div class='fullwidth' id='pgpkeylist'>
+
+          </div>
+          <div class='fullwidth centerparent'>
+            <div class='bluebutton center halfwidth' id="genkey">
+              Generate Key
+            </div>
+            <div class='bluebutton center halfwidth' id="importkey">
+              Import Public Key
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id='keydetailinfo' class='threequarterswidth fullheight'>
+        <div class='padded fullwidth fullheight' id='pgpkeyinfo'>
+          No Key Selected; select a key on the right, or generate a new one.
+        </div>
+        <div class='fullwidth' id='pgpkeyimport' style="display: none;">
+          <textarea id='pubkeysubmit' class='fullwidth fullheight padded' placeholder="enter pgp public key here" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+          <div id='submitpubkey' class='bluebutton upper right absolute'>
+            Submit Key
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
