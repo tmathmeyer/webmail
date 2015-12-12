@@ -254,7 +254,7 @@ document.addEventListener("DOMContentLoaded", function() {
       var re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
       return !re.test(email);
     },
-    getPubKeys(ctx) {
+    getPubKeys: function(ctx) {
       var r = localStorage.getItem('pubkeys');
       if (r) {
         return JSON.parse(r);
