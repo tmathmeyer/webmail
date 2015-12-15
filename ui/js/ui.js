@@ -1,42 +1,73 @@
 /*
 Copyright (C) 2015 Ted Meyer
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License version 2 as
-    published by the Free Software Foundation.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 2 as
+published by the Free Software Foundation.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License along
-    with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
+var poison;
+//createElement: function(type, id, classes, content, onclick)
+var getmail = function(name) {
+  $.get('mailbox/'+name+'/10', function(data){
+    document.getElementById('maillisting').innerHTML = '';
+    document.getElementById('maillisting')
+      .appendChild(poison.createElement('ul', '', [], {
+        'type': 'nodes',
+        'content': data.map(function(each){
+          return poison.createElement('li', '', [], {
+            'type': 'nodes',
+            'content': [
+              poison.createElement('div', '', ['email'], {
+                'type': 'text',
+                'content': each.title===''?'(No Subject)':each.title
+              }, function(){
+                console.log('clicked on '+each.title);
+              })
+            ]
+          });
+        })
+      }));
+    poison.panelids.forEach(function(each) {
+      poison.hide(each);
+    });
+    poison.unhide('maillisting');
+  });
+}
 document.addEventListener("DOMContentLoaded", function() {
-  (function(ctx) {
-    panelids=[
+  poison = (function(ctx) {
+    ctx.panelids=[
       'compositionform',
       'maillisting',
       'PGPControlPanel'
     ]
     ctx.listen('compose', 'click', function() {
-      panelids.forEach(function(each) {
+      ctx.panelids.forEach(function(each) {
         ctx.hide(each);
       });
       ctx.unhide('compositionform');
     });
     ctx.listen('pgpcontrol', 'click', function() {
-      panelids.forEach(function(each) {
+      ctx.panelids.forEach(function(each) {
         ctx.hide(each);
       });
       ctx.unhide('PGPControlPanel');
     });
     ctx.listen('trash', 'click', function() {
-      panelids.forEach(function(each) {
+      ctx.panelids.forEach(function(each) {
         ctx.hide(each);
       });
+      ctx.setValue('to', '');
+      ctx.setValue('subject', '');
+      ctx.setValue('writeEmail', '');
       ctx.unhide('maillisting');
     });
     ctx.listen('importkey', 'click', function() {
@@ -51,7 +82,7 @@ document.addEventListener("DOMContentLoaded", function() {
       window.openpgp.encryptMessage(pubkey.keys, 'test').then(function(msg){
         pubkey = pubkey.keys[0];
         var pubkeys = localStorage.getItem('pubkeys');
-            pubkeys = pubkeys ? JSON.parse(pubkeys) : {};
+        pubkeys = pubkeys ? JSON.parse(pubkeys) : {};
         pubkey.users.forEach(function(user) {
           pubkeys[user.userId.userid] = keyArmored.value;
         });
@@ -85,8 +116,8 @@ document.addEventListener("DOMContentLoaded", function() {
           'subject': document.getElementById('subject').value,
           'body': pgpMessage
         }).done(function(data) {
-          console.log(pgpMessage);
           alert(data);
+          alert('redirect to inbox!');
         });
       });
     });
@@ -110,10 +141,14 @@ document.addEventListener("DOMContentLoaded", function() {
       ctx.generateKeyPair(ctx);
     });
     ctx.repopulateKeys(ctx);
+    return ctx;
   })({
     currentemail: {
       'encryption': false,
       'key': null
+    },
+    setValue: function(name, value) {
+      document.getElementById(name).value = value;
     },
     listen: function(name, event, fn) {
       document.getElementById(name).addEventListener(event, fn);
@@ -191,8 +226,8 @@ document.addEventListener("DOMContentLoaded", function() {
         alert(error);
       });
     },
-    setPGPElement: function(pgpkey, ctx) {
-      pgpkey = window.openpgp.key.readArmored(pgpkey);
+    setPGPElement: function(pgpkeyArmour, ctx) {
+      pgpkey = window.openpgp.key.readArmored(pgpkeyArmour);
       var keyinspector = ctx.createElement('div', 'keyDetailView', [], {
         'type': 'nodes',
         'content': [
@@ -281,7 +316,7 @@ document.addEventListener("DOMContentLoaded", function() {
         })
       } else {
         document.getElementById('pgpkeylist').innerHTML =
-          '<div class="pgpKeyElement"> No PGP keys added </div>'
+        '<div class="pgpKeyElement"> No PGP keys added </div>'
       }
     }
   })

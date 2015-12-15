@@ -16,10 +16,28 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 */
 
 var nodemailer = require('nodemailer');
-var app = require('isotope').create(8080,[
+var inbox = require("inbox");
+var read = require('read');
+var app = require('isotope').create(8080, [
   require('isotemplate').engine
 ]);
-var read = require('read')
+app.meta.addunderscore('_dir', function(name, url){
+  url.unshift(name);
+  return url;
+}, true);
+app.static = function(url, path) {
+  app.get(url+'/_dir', function(res, req, url){
+    url.unshift(path);
+    res.stream.relative(url.join('/'));
+  });
+};
+app.redirect = function(from, to) {
+  app.get(from, function(res){
+    app.headers.redirect(res, to);
+  });
+};
+app.static('static', 'ui');
+
 read({ prompt: 'Password: ', silent: true }, function(er, password) {
   var auth = {
     'user': process.argv[2],
@@ -33,58 +51,73 @@ read({ prompt: 'Password: ', silent: true }, function(er, password) {
     console.log('missing password');
     return;
   }
-
-  var transporter = nodemailer.createTransport({
-    'service': 'Gmail',
-    'auth': auth
-  });
-
-  app.meta.addunderscore('_dir', function(name, url){
-    url.unshift(name);
-    return url;
-  }, true);
-
-  app.static = function(url, path) {
-    app.get(url+'/_dir', function(res, req, url){
-      url.unshift(path);
-      res.stream.relative(url.join('/'));
-    });
-  }
-  app.redirect = function(from, to) {
-    app.get(from, function(res){
-      app.headers.redirect(res, to);
-    });
-  }
-
-  app.static('static', 'ui');
-  app.get('', function(res){
-    app.template(res, 'ui/index.html',{
-      'mailtags':[
-        {'tagname': 'inbox'},
-        {'tagname': 'archived'},
-        {'tagname': 'spam'}
-      ],
-      'senderaddr': auth.user
-    })
-  });
-
-  app.post('send/email', function(res, req) {
-    app.extract_data(req, function(data) {
-      transporter.sendMail({
-        'from': auth.user,
-        'to': data.to,
-        'subject': data.subject,
-        'text': data.body
-      }, function(error, info){
-        if(error) {
-          res.writeHead(500, {"Content-Type": "text/plain"});
-          res.write(JSON.stringify(error));
-          res.end("message not sent");
-          return;
-        }
-        app.headers.ok(res);
-        res.end('message Sent!');;
+  (function(ctx){
+    ctx.read.on("connect", function(){
+      app.get('', function(res){
+        ctx.read.listMailboxes(function(error, mailboxes){
+          app.template(res, 'ui/index.html',{
+            'mailtags':mailboxes.map(function(mb){
+              return {
+                'tagname': mb.name,
+                'path': mb.path
+              }
+            }),
+            'senderaddr': auth.user
+          });
+        });
+      });
+      app.get('mailbox/_var/_var', function(res, req, mbpath, count){
+        res.writeHead(200, {'Content-Type': 'application/json'});
+        ctx.read.openMailbox(mbpath, function(error, info){
+          ctx.read.listMessages(-10, function(err, messages){
+            res.end(JSON.stringify(messages.map(function(each) {
+              return {
+                'title': each.title,
+                'uuid': each.UID,
+                'from': each.from
+              };
+            })));
+          });
+        });
+      });
+      app.get('message/_var/_var', function(res, req, mbox, uid){
+        res.writeHead(200, {'Content-Type': 'application/json'});
+        ctx.read.openMailbox(mbox, function(error, info){
+          ctx.read.fetchData(uid, function(error, message){
+            console.log(message.flags);
+            res.end('{"msg": true}');
+          });
+        });
+      });
+      app.post('send/email', function(res, req) {
+        app.extract_data(req, function(data) {
+          ctx.write.sendMail({
+            'from': auth.user,
+            'to': data.to,
+            'subject': data.subject,
+            'text': data.body
+          }, function(error, info){
+            if(error) {
+              res.writeHead(500, {"Content-Type": "text/plain"});
+              res.write(JSON.stringify(error));
+              res.end("message not sent");
+              return;
+            }
+            app.headers.ok(res);
+            res.end('message Sent!');;
+          });
+        });
       });
     });
+    ctx.read.connect();
+  })({
+    'read': inbox.createConnection(false, "imap.gmail.com", {
+      'secureConnection': true,
+      'auth': auth
+    }),
+    'write': nodemailer.createTransport({
+      'service': 'Gmail',
+      'auth': auth
+    })
   });
-})
+});

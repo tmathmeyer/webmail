@@ -30,7 +30,7 @@ Copyright (C) 2015 Ted Meyer
     </div>
     <ul id='tagfilters'>
       {{mailtags}}
-      <li class='mailtag'>{{tagname}}</li>
+      <li class='mailtag' onclick='getmail("{{path}}")'>{{tagname}}</li>
       {{/mailtags}}
     </ul>
     <div id='pgpcontrol' class='button white'>
@@ -63,7 +63,7 @@ Copyright (C) 2015 Ted Meyer
       </div>
     </div>
     <div id='maillisting' style="display: none;">
-      {{mails}}
+      
     </div>
     <div id='PGPControlPanel' class='fullheight fullwidth' style="display: none;">
       <div id='keyselector' class='quarterwidth fullheight'>
