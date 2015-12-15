@@ -16,6 +16,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 */
 
 var nodemailer = require('nodemailer');
+var through = require('through');
 var inbox = require("inbox");
 var read = require('read');
 var app = require('isotope').create(8080, [
@@ -37,6 +38,11 @@ app.redirect = function(from, to) {
   });
 };
 app.static('static', 'ui');
+var resStream = function(res) {
+  return new through(function(data, ehh) {
+    res.write(data.toString());
+  });
+}
 
 read({ prompt: 'Password: ', silent: true }, function(er, password) {
   var auth = {
@@ -81,11 +87,18 @@ read({ prompt: 'Password: ', silent: true }, function(er, password) {
         });
       });
       app.get('message/_var/_var', function(res, req, mbox, uid){
-        res.writeHead(200, {'Content-Type': 'application/json'});
-        ctx.read.openMailbox(mbox, function(error, info){
+        res.writeHead(200, {'Content-Type': 'text/html'});
+        ctx.read.openMailbox(mbox, {
+          'readOnly': true
+        },function(error, info){
           ctx.read.fetchData(uid, function(error, message){
-            console.log(message.flags);
-            res.end('{"msg": true}');
+            var cms = ctx.read.createMessageStream(uid);
+            cms.on('data', function(data){
+              res.write(data.toString());
+            })
+            cms.on('end', function(){
+              res.end('');
+            });
           });
         });
       });

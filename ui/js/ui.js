@@ -20,19 +20,23 @@ var getmail = function(name) {
   $.get('mailbox/'+name+'/10', function(data){
     document.getElementById('maillisting').innerHTML = '';
     document.getElementById('maillisting')
-      .appendChild(poison.createElement('ul', '', [], {
+      .appendChild(poison.createElement('ul', '', ['tagfilters'], {
         'type': 'nodes',
         'content': data.map(function(each){
-          return poison.createElement('li', '', [], {
+          return poison.createElement('li', '', ['mailtag', 'lpadding'], {
             'type': 'nodes',
             'content': [
-              poison.createElement('div', '', ['email'], {
+              poison.createElement('div', '', ['quarterwidth', 'noverflow', 'rightborderline'], {
+                'type': 'text',
+                'content': each.from.name
+              }),
+              poison.createElement('div', '', ['threequarterswidth', 'noverflow', 'lpadding'], {
                 'type': 'text',
                 'content': each.title===''?'(No Subject)':each.title
-              }, function(){
-                console.log('clicked on '+each.title);
               })
             ]
+          }, function() {
+            poison.showMail(each.uuid, name, poison);
           });
         })
       }));
@@ -44,11 +48,6 @@ var getmail = function(name) {
 }
 document.addEventListener("DOMContentLoaded", function() {
   poison = (function(ctx) {
-    ctx.panelids=[
-      'compositionform',
-      'maillisting',
-      'PGPControlPanel'
-    ]
     ctx.listen('compose', 'click', function() {
       ctx.panelids.forEach(function(each) {
         ctx.hide(each);
@@ -143,6 +142,12 @@ document.addEventListener("DOMContentLoaded", function() {
     ctx.repopulateKeys(ctx);
     return ctx;
   })({
+    panelids:[
+      'compositionform',
+      'maillisting',
+      'PGPControlPanel',
+      'mailinspector'
+    ],
     currentemail: {
       'encryption': false,
       'key': null
@@ -318,6 +323,28 @@ document.addEventListener("DOMContentLoaded", function() {
         document.getElementById('pgpkeylist').innerHTML =
         '<div class="pgpKeyElement"> No PGP keys added </div>'
       }
+    },
+    spliceHTML: function(data) {
+      var res = data.substring(data.lastIndexOf('Content-Type'));
+      res = res.substring(res.indexOf('\n'));
+      res = res.substring(res.indexOf('\n'));
+      console.log(res);
+      return res;
+    },
+    showMail: function(uuid, mbox, ctx) {
+      $.get('/message/'+mbox+'/'+uuid, function(data) {
+        document.getElementById('mailinspector').innerHTML = null;
+        document.getElementById('mailinspector').appendChild(
+          ctx.createElement('div', '', [], {
+            'type': 'html',
+            'content': ctx.spliceHTML(data)
+          })
+        )
+        ctx.panelids.forEach(function(each) {
+          ctx.hide(each);
+        });
+        ctx.unhide('mailinspector');
+      });
     }
   })
 });

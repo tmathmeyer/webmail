@@ -28,7 +28,7 @@ Copyright (C) 2015 Ted Meyer
     <div id='compose' class='button white'>
       Compose
     </div>
-    <ul id='tagfilters'>
+    <ul class='tagfilters'>
       {{mailtags}}
       <li class='mailtag' onclick='getmail("{{path}}")'>{{tagname}}</li>
       {{/mailtags}}
@@ -62,9 +62,8 @@ Copyright (C) 2015 Ted Meyer
         </div>
       </div>
     </div>
-    <div id='maillisting' style="display: none;">
-      
-    </div>
+    <div id='maillisting' style="display: none;"></div>
+    <div id='mailinspector' style="display: none;" class='fullheight'></div>
     <div id='PGPControlPanel' class='fullheight fullwidth' style="display: none;">
       <div id='keyselector' class='quarterwidth fullheight'>
         <div class='fullwidth fullheight'>
